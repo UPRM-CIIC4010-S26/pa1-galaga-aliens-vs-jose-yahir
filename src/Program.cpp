@@ -35,7 +35,7 @@ void Program::Update() {
     pauseFrames = std::max(pauseFrames - 1, 0);
 
     if (!startup && !paused && !gameOver && pauseFrames <= 0) {
-        Enemy::ManageEnemies(player->hitBox);
+        Enemy::ManageEnemies(player->hitBox,score); // se añade score qui porque se hizo en Enemy.hpp
         StdEnemy::attackReset();
         ManageEnemyRespawns();
         player->update();
@@ -75,6 +75,8 @@ void Program::Draw() {
     background.Draw();
     if (pauseFrames <= 0 && !gameOver) player->draw();
     for (Animation& a : Animation::animations) a.draw();
+
+    DrawText(TextFormat("Score: %i", score), 10, 10, 30, WHITE); // Para que el score sea visible
 
     for (int i = 0; i < lives; i++) {
          DrawTexturePro(ImageManager::SpriteSheet, Rectangle{0, 0, 17, 18}, 
@@ -162,6 +164,8 @@ void Program::KeyInputs() {
     if (score >= nextLifeScoreCount) {
         lives ++;
         nextLifeScoreCount += 1000;
+    } else if (lives > 5) {
+        lives = 5; 
     }
     if (score >= nextRespawnScore) {
         respawnCooldown -10;
@@ -200,6 +204,9 @@ void Program::Reset() {
      for (int i = 0; i < 30; i++) {
         float x = 250 + 50 * (i % 10);
         float y = 200 + 50 * (i / 10);
+        score = 0;
+        nextLifeScoreCount = 1000; // para que se resetee todo
+        lives = 0; 
 
         Enemy::enemies.push_back(std::pair<std::pair<float, float>, Enemy*> {
             std::pair<float, float>{x, y}, 
