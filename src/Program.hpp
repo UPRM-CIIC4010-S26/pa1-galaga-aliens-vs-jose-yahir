@@ -22,10 +22,16 @@ class Program {
         int score = 0;
         int nextLifeScoreCount = 1000;
         int nextRespawnScore = 500; 
+         
 
         bool startup = true;
         bool paused = false;
         bool gameOver = false;
+
+        Music currentMusic; // current music playing
+        bool megalovaniaStarted = false;
+        bool gameOverMusicStarted = false;
+
 
     public:
         Program();
@@ -40,5 +46,5 @@ class Program {
         void PlayerReset();
         void Reset();
           
-        ~Program() {}
+        ~Program() {UnloadMusicStream(currentMusic);} // To unload music
 };

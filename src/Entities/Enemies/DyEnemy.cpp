@@ -3,9 +3,17 @@
 
 void DyEnemy::draw() {
     if (HitBox::drawHitbox) this->hitBox.draw();
-    DrawTexturePro(ImageManager::SpriteSheet, Rectangle{2, 128, 13, 14}, 
+    
+    if (useAlternateTexture) { // 50% de probabilidad de usar una u otra textura de DyEnemy
+    DrawTexturePro(ImageManager::SpriteSheet, Rectangle{74, 197, 13, 17}, 
                 Rectangle{this->position.first + 15, this->position.second + 15, 30, 30}, 
                 Vector2{15, 15}, this->aimAngle, WHITE);
+
+    } else {
+        DrawTexturePro(ImageManager::SpriteSheet, Rectangle{2, 128, 13, 14}, 
+                Rectangle{this->position.first + 15, this->position.second + 15, 30, 30}, 
+                Vector2{15, 15}, this->aimAngle, WHITE);
+    }
 }
 
 void DyEnemy::update(std::pair<float, float> pos, HitBox target) {

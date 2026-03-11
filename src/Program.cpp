@@ -25,9 +25,14 @@ Program::Program() {
             new StdEnemy(x, y)
         });
     }
+    currentMusic = LoadMusicStream("audio/startmenu.mp3");
+    currentMusic.looping = true;
+    PlayMusicStream(currentMusic); 
 }
 
 void Program::Update() {
+    UpdateMusicStream(currentMusic);
+    
     for (Animation& a : Animation::animations) a.update();
     for (int i = 0; i < Animation::animations.size(); i++) {
         if (Animation::animations[i].done) Animation::animations.erase(Animation::animations.begin() + i);
@@ -35,6 +40,15 @@ void Program::Update() {
     pauseFrames = std::max(pauseFrames - 1, 0);
 
     if (!startup && !paused && !gameOver && pauseFrames <= 0) {
+        if(score >= 10000 && !megalovaniaStarted) {
+        StopMusicStream(currentMusic);
+        UnloadMusicStream(currentMusic);
+
+        currentMusic = LoadMusicStream("audio/megalovania.mp3");
+        currentMusic.looping = true;
+        PlayMusicStream(currentMusic); // Starts Megalovania Music
+        megalovaniaStarted = true; 
+        }
         Enemy::ManageEnemies(player->hitBox,score); // se añade score qui porque se hizo en Enemy.hpp
         StdEnemy::attackReset();
         ManageEnemyRespawns();
@@ -65,7 +79,17 @@ void Program::Update() {
 
         }
 
-        if (lives <= 0 && pauseFrames <= 0) gameOver = true;
+        if (lives <= 0 && pauseFrames <= 0 && !gameOver) {
+            gameOver = true;
+
+            StopMusicStream(currentMusic);
+            UnloadMusicStream(currentMusic);
+
+            currentMusic = LoadMusicStream("audio/determination.mp3");
+            currentMusic.looping = true;
+            PlayMusicStream(currentMusic);
+            gameOverMusicStarted = true;
+        }
         Projectile::CleanProjectiles();
         Projectile::ProjectileCollision();
     }
@@ -157,7 +181,7 @@ void Program::DrawGameOver() {
 void Program::KeyInputs() {
     if ((!gameOver && !startup && IsKeyPressed('P')) || (paused && IsKeyPressed(KEY_ENTER))) paused = !paused;
     if (!paused && !startup && IsKeyPressed('O')) gameOver = !gameOver;
-    if (!gameOver && !paused && IsKeyPressed('I')) startup = !startup;
+    
     if (IsKeyPressed('H')) HitBox::drawHitbox = !HitBox::drawHitbox;
     if (!gameOver && !paused && IsKeyPressed('K')) {
         score += 500;}
@@ -168,19 +192,34 @@ void Program::KeyInputs() {
         lives = 5; 
     }
     if (score >= nextRespawnScore) {
-        respawnCooldown -10;
+        respawnCooldown -=10; // decreases repawnCoolDown
         nextRespawnScore += 500; 
     }
     
     
 
     if (gameOver && IsKeyPressed(KEY_ENTER)) {
-        gameOver = false;
+        StopMusicStream(currentMusic);
+        UnloadMusicStream(currentMusic);
+
         Reset();
+        gameOver = false;
+
+        currentMusic = LoadMusicStream("audio/battle_against_a_true_hero.mp3");
+        currentMusic.looping = true;
+        PlayMusicStream(currentMusic);
+
     }
 
-    if (startup && IsKeyPressed(KEY_ENTER)) {
+    if (startup && IsKeyPressed(KEY_ENTER)) {   // Only Enter starts the game NOT "I" because of music tied to enter
         startup = false;
+
+        StopMusicStream(currentMusic);
+        UnloadMusicStream(currentMusic);
+
+        currentMusic = LoadMusicStream("audio/battle_against_a_true_hero.mp3");
+        currentMusic.looping = true;
+        PlayMusicStream(currentMusic);
     }
 
     if (!startup && !paused && !gameOver && pauseFrames <= 0) player->keyInputs();
@@ -204,15 +243,17 @@ void Program::Reset() {
      for (int i = 0; i < 30; i++) {
         float x = 250 + 50 * (i % 10);
         float y = 200 + 50 * (i / 10);
-        score = 0;
-        nextLifeScoreCount = 1000; // para que se resetee todo
-        lives = 0; 
+        
 
         Enemy::enemies.push_back(std::pair<std::pair<float, float>, Enemy*> {
             std::pair<float, float>{x, y}, 
             new StdEnemy(x, y)
         });
     }
+        score = 0;
+        nextLifeScoreCount = 1000; // para que se resetee todo
+        lives = 0; 
+
     StdEnemy::attackInProgress = false;
     player = new Player((GetScreenWidth() / 2) - 15, GetScreenHeight() * 0.75f);
     respawnCooldown = 1080;
@@ -220,4 +261,6 @@ void Program::Reset() {
     count = 0;
     delay = 0;
     lives = 3;
+    megalovaniaStarted = false;
+    gameOverMusicStarted = false;
 }
